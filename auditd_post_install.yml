@@ -1,0 +1,31 @@
+---
+- name: Restore Compliance Hardening Post AAP 2.5 Setup
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Uncomment ALL active watches inside podman-runtime.rules
+      ansible.builtin.replace:
+        path: /etc/audit/rules.d/podman-runtime.rules
+        regexp: '^#\s*([^#].*)$'
+        replace: '\1'
+      register: post_podman_enabled
+
+    - name: Remove the user bypass block from the top of perm_mod.rules
+      ansible.builtin.blockinfile:
+        path: /etc/audit/rules.d/perm_mod.rules
+        state: absent
+        marker: "# {mark} ANSIBLE MANAGED USER BYPASS"
+      register: post_user_bypass
+
+    - name: Reboot host to re-compile production rules and lock the audit engine
+      ansible.builtin.reboot:
+        msg: "Rebooting to restore original production compliance audit configurations."
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 2
+      when: >
+        post_podman_enabled.changed or
+        post_user_bypass.changed
+

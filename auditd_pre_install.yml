@@ -1,0 +1,47 @@
+---
+- name: Prepare RHEL 9 Individual Rules for AAP 2.5 Installation
+  hosts: all
+  become: true
+  gather_facts: false
+
+  # This forces Ansible to use your specified directory for its temporary binary executions
+  vars:
+    ansible_remote_tmp: "~/.ansible/tmp"
+
+  # pre_tasks run first to build the directory before main module tracking begins
+  pre_tasks:
+    - name: Ensure the user execution temp directory exists on the target host
+      ansible.builtin.file:
+        path: "~/.ansible/tmp"
+        state: directory
+        mode: '0700'
+      become: false  # Creates it in your current user's home context, not root's
+
+  tasks:
+    - name: Comment out ALL active watches inside podman-runtime.rules
+      ansible.builtin.replace:
+        path: /etc/audit/rules.d/podman-runtime.rules
+        regexp: '^([^#].*)$'
+        replace: '# \1'
+      register: pre_podman_disabled
+
+    - name: Prepend the user bypass (UID 1001) to the top of perm_mod.rules
+      ansible.builtin.blockinfile:
+        path: /etc/audit/rules.d/perm_mod.rules
+        insertbefore: BOF
+        marker: "# {mark} ANSIBLE MANAGED USER BYPASS"
+        block: |
+          # ignore aap user
+          -a always,exclude -F auid=1001
+      register: pre_user_bypass
+
+    - name: Reboot host to compile new layout and bypass immutable lock
+      ansible.builtin.reboot:
+        msg: "Rebooting to apply optimized component audit configurations."
+        connect_timeout: 5
+        reboot_timeout: 300
+        pre_reboot_delay: 2
+      when: >
+        pre_podman_disabled.changed or
+        pre_user_bypass.changed
+

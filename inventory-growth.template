@@ -1,0 +1,75 @@
+[automationgateway]
+__TARGET_HOST__
+
+[automationcontroller]
+__TARGET_HOST__
+
+#not needed
+#[automationhub]
+#__TARGET_HOST__
+
+#also not needed
+#[automationeda]
+#__TARGET_HOST__
+
+[database]
+__TARGET_HOST__
+
+
+[all:vars]
+# Remotely connect via SSH using the keys you transferred
+ansible_user=aap
+ansible_ssh_private_key_file=/home/admin/.ssh/id_rsa
+host_key_checking=false
+
+# Common variables
+postgresql_admin_username=postgres
+postgresql_admin_password=default_PASSWORD_8675309
+redis_mode=standalone
+
+# Network Registry Setup
+bundle_install=false
+
+images_tmp_dir=~/.ansible/tmp
+ansible_remote_tmp=~/.ansible/tmp
+
+registry_url=192.168.10.208:5000
+registry_verify_ssl=false
+registry_tls_verify=false
+registry_auth=false
+
+# Custom Execution Environment Integration
+ee_extra_images=[{"name": "ogs-ee-exact-fips1", "image": "192.168.10.208:5000/ansible-automation-platform-25/ogs-ee-exact-fips1:latest"}]
+
+# Pre-seed the Controller UI with the matching network string but lock the pull behavior
+controller_execution_environments=[{"name": "OGS EE Exact FIPS1", "image": "192.168.10.208:5000/ansible-automation-platform-25/ogs-ee-exact-fips1:latest", "description": "Custom OGS FIPS compliant execution environment", "pull": "never"}]
+controller_default_execution_environment="192.168.10.208:5000/ansible-automation-platform-25/ogs-ee-exact-fips1:latest"
+
+# CLI Fallback override
+podman_executable=/usr/bin/podman
+
+# ====================================================================
+# Component-Specific Settings (Self-Targeting Databases)
+# ====================================================================
+# AAP Gateway (self targeting)
+gateway_admin_password=default_PASSWORD_8675309
+gateway_pg_host="{{ inventory_hostname }}"
+gateway_pg_password=default_PASSWORD_8675309
+
+# AAP Controller
+controller_admin_password=default_PASSWORD_8675309
+controller_pg_host="{{ inventory_hostname }}"
+controller_pg_password=default_PASSWORD_8675309
+controller_percent_memory_capacity=0.5
+
+# AAP Automation Hub
+hub_admin_password=default_PASSWORD_8675309
+hub_pg_host="{{ inventory_hostname }}"
+hub_pg_password=default_PASSWORD_8675309
+hub_seed_collections=false
+
+# AAP EDA Controller (Will install now via the registry)
+eda_admin_password=default_PASSWORD_8675309
+eda_pg_host="{{ inventory_hostname }}"
+eda_pg_password=default_PASSWORD_8675309
+
