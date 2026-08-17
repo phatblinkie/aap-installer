@@ -27,12 +27,28 @@ postgresql_admin_username=postgres
 postgresql_admin_password=default_PASSWORD_8675309
 redis_mode=standalone
 
+# Custom Ca
+#Using a custom CA to generate all TLS certificates
+
+#Use this method when you want Ansible Automation Platform to generate all of the certificates, but you want them signed by a custom CA rather than the default self-signed certificates.
+
+# When you use ca_tls_cert and ca_tls_key, the installation program automatically creates TLS certificates for each 
+# Ansible Automation Platform service using your provided CA certificate. 
+# You do not need to define individual service certificate variables (such as gateway_tls_cert, controller_tls_cert, or hub_tls_cert) 
+# because the installation program generates these certificates for you. 
+# Where:
+# ca_tls_cert is the path to your custom CA certificate file.
+# ca_tls_key is the path to the key file for your custom CA certificate. 
+#openssl genrsa -out ca.key 4096
+ca_tls_cert=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/ca.crt
+#openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.crt
+#be sure to put the desired fqdn on this one
+ca_tls_key=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/ca.key
+
 # Network Registry Setup
 bundle_install=false
-
 images_tmp_dir=~/.ansible/tmp
 ansible_remote_tmp=~/.ansible/tmp
-
 registry_url=192.168.10.208:5000
 registry_verify_ssl=false
 registry_tls_verify=false
@@ -55,21 +71,33 @@ podman_executable=/usr/bin/podman
 gateway_admin_password=default_PASSWORD_8675309
 gateway_pg_host="{{ inventory_hostname }}"
 gateway_pg_password=default_PASSWORD_8675309
+#uncomment if you made ca generated certs
+#gateway_tls_cert=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/fullchain.pem
+#gateway_tls_key=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/privkey.pem
+
 
 # AAP Controller
 controller_admin_password=default_PASSWORD_8675309
 controller_pg_host="{{ inventory_hostname }}"
 controller_pg_password=default_PASSWORD_8675309
 controller_percent_memory_capacity=0.5
+#uncomment if you made ca generated certs
+#controller_tls_cert=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/fullchain.pem
+#controller_tls_key=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/privkey.pem
 
 # AAP Automation Hub
 hub_admin_password=default_PASSWORD_8675309
 hub_pg_host="{{ inventory_hostname }}"
 hub_pg_password=default_PASSWORD_8675309
 hub_seed_collections=false
+#uncomment if you made ca generated certs
+#hub_tls_cert=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/fullchain.pem
+#hub_tls_key=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/privkey.pem
 
 # AAP EDA Controller (Will install now via the registry)
 eda_admin_password=default_PASSWORD_8675309
 eda_pg_host="{{ inventory_hostname }}"
 eda_pg_password=default_PASSWORD_8675309
-
+#uncomment if you made ca generated certs
+#eda_tls_cert=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/fullchain.pem
+#eda_tls_key=/home/admin/ansible-automation-platform-containerized-setup-bundle-2.5-10.1-x86_64/customssl/privkey.pem
